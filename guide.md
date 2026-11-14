@@ -1,16 +1,16 @@
 # Writing and Judging a Go API
 
-Lessons distilled from odh, a Go modular monolith built with AI agents. Each rule here was either backed by research
-or learned from a mistake. Where a source or a run settled it, the source is named.
+The rules a project's Go code is written and judged by. A project's own `docs/practices.md` adds its rules, and
+decides where the two differ.
 
 ## Principles
 
 - Keep the code small and simple. Measure small in lines. Simple is not the same as easy.
 - Make an impossible state impossible to build, rather than checking for it at runtime.
 - One small reusable piece beats the same glue repeated in each caller.
-- Prefer a deep module: a small interface over a lot of behavior (Ousterhout).
-- Don't make the client do anything the module could do (Bloch). When in doubt, leave it out.
-- Minimize conceptual weight, not the count of types or methods (Bloch).
+- Prefer a deep module: a small interface over a lot of behavior.
+- Don't make the client do anything the module could do. When in doubt, leave it out.
+- Minimize conceptual weight, not the count of types or methods.
 - Build what the current step needs. Expect names to change and refactors to follow.
 - Use modern Go where it removes code: generics, `http.ServeMux` patterns, `log/slog`, `errors.AsType`,
   `testing/synctest`, `sync.WaitGroup.Go`. A test that fails while `go fix` would change the code keeps it modern.
@@ -20,13 +20,11 @@ or learned from a mistake. Where a source or a run settled it, the source is nam
 A package is a contract its users read through `go doc`, or a piece two packages share.
 
 - Default to fewer packages. Each split adds an import, a package doc, and an exported name for each shared thing.
-  Cheney: "Your default position should be to not create a new package."
 - Split a package when a second importer needs the code, or for a subsystem whose contract a reader can use without
-  reading its body. The standard library moved `singleflight` out only once `cmd/go` needed it too.
-- Don't split a package only to guard one type's fields. The standard library and large projects keep such types
-  unexported where they are used: `sync.poolDequeue`, `database/sql.closingMutex`, CockroachDB's `mu struct{...}`.
-- Guard locked fields with layout and one comment above them, stating the rule they obey: "read and written only while
-  holding sem."
+  reading its body.
+- Don't split a package only to guard one type's fields. Keep such a type unexported where it is used.
+- Guard locked fields with layout, such as a `mu struct{...}` that holds the lock and the fields it guards. Put one
+  comment above them, stating the rule they obey: "read and written only while holding sem."
 - Use `internal/` to decide who may import a split. It does not supply a reason to split.
 
 ## Files
@@ -35,12 +33,12 @@ A package is a contract its users read through `go doc`, or a piece two packages
 - Confirm the seam in git history: most commits should change the piece or the rest, not both.
 - Name each file for its concept. Give one role the same file name everywhere, such as `outbox.go` in every service. A
   file name then works as an index from `ls`.
-- Size alone never splits a file. Nine Go files in ten stay under 500 lines, and `context` is one file of 807 lines.
+- Size alone never splits a file.
 - For an agent, `go doc -all` reads the package and ignores its files. A split changes only what a source read costs.
 
 ## The call site is the API
 
-Judge an API by how its call looks across every use, read without its docs (Bloch, Google's Go style, Abseil Tip #94).
+Judge an API by how its call looks across every use, read without its docs.
 
 ```go
 // Positional: compiles safely, since the funcs have distinct types, but names no role.
@@ -50,7 +48,7 @@ s.pay = aggregate.NewOnce((*model.Order).Paying, s.authorize, s.paid)
 s.pay = aggregate.On(orders).Wait((*model.Order).Paying).Send(s.authorize).Keep(s.paid)
 ```
 
-- Count go-to-definition hops. A reader who needs four hops to learn what an argument does has hit an unknown unknown.
+- Count go-to-definition hops. Four hops to learn what an argument does is too many.
 - A doc must land: a reader who jumps to a symbol learns what it does and when, without a second hop. `go doc` groups
   constructors under their type, but go-to-definition never shows that grouping.
 - To name roles, pick one: an option struct, a builder chain, or labeled wrapper funcs. Positional funcs fit only when
@@ -58,14 +56,14 @@ s.pay = aggregate.On(orders).Wait((*model.Order).Paying).Send(s.authorize).Keep(
 - In Go 1.27, a generic struct literal must list every type argument. An option struct over generic funcs then costs
   type arguments or an alias. A builder or a constructor infers them.
 - A struct of funcs compiles with a nil field. A builder or positional form makes a missing step a compile error.
-- Reuse a method name across types only with the same signature and meaning (Effective Go). One word means one thing.
+- Reuse a method name across types only with the same signature and meaning. One word means one thing.
 - Avoid a name that already means something in Go. A `Once.Do` that does not mean `sync.Once.Do` is a pun.
 - Avoid conjoined methods, which a reader must read together to understand either.
 - Avoid shallow pass-throughs, such as a func that only calls another with a default.
-- A shared signature can hide a choice. When the caller's choice of `Do` decides what gets sent, fold the choice into
-  the module.
-- Write programs by writing code, not by defining types (Ian Lance Taylor). Method expressions such as
-  `(*model.Order).Paying` pass behavior without a new type.
+- A shared signature can hide a choice. When which of two funcs with one signature a caller passes decides what the
+  module does, fold the choice into the module.
+- Write programs by writing code, not by defining types. Method expressions such as `(*model.Order).Paying` pass
+  behavior without a new type.
 
 ## Make misuse impossible
 
@@ -73,15 +71,15 @@ The best rule is one the compiler checks. Prefer, in order: a compile error, a p
 last, a sentence in a doc.
 
 - Seal an interface with an unexported method, so no other package's type can satisfy it.
-- When only the framework may supply a value, give it a type the caller cannot build usefully. odh's `aggregate.Inbox`
-  holds a reply only while the root still waits on it.
+- When only the framework may supply a value, give it a type the caller cannot build usefully, such as a reply that
+  is valid only while the framework still waits on it.
 - A wrong value that the compiler accepts should panic at startup, such as a codec that refuses an untagged field.
 - Make every exported name have a caller outside its package that is not a test. If only tests use it, unexport it.
   Packages whose names end in `test` are exempt.
 - Write arch tests for the rules the compiler skips: forbidden imports, state changed outside its one method, a
   handler that writes twice.
-- List the rest as Traps: rules that pass the compiler, the tests and the linters. Each trap names the doc that holds
-  its fact.
+- List the rest as Traps in the project's `docs/practices.md`: rules that pass the compiler, the tests and the
+  linters. Each trap names the doc that holds its fact.
 
 ## Inside a function
 
@@ -89,8 +87,8 @@ A reader holds one function at a time. Count what they must hold, and let a tool
 
 - Count cognitive complexity, not paths (Campbell). Each break in the flow costs 1, plus 1 for each level it is
   nested. Keep a function at 15 or under.
-- A switch with one case for each event or rule is one place to read. Count it as its costliest case, never as their
-  sum. odh's `Apply` has 24 cases, and a reader takes each alone.
+- A switch with one case for each event or rule is one place to read. Count it as 1 plus its costliest case, never
+  as their sum.
 - Write a command's refusals as one list of guard cases. Each case is one rule, with its own message.
 - Give a value's validity a name, such as `deliverable(a)`. The guard stays in its place, and reads as its rule.
 - State a rule once. When a named predicate already holds it, call that predicate rather than restating it negated.
@@ -104,16 +102,16 @@ A reader holds one function at a time. Count what they must hold, and let a tool
 
 ### What a score is worth
 
-- Keep a score of your own, built from your rules. odh's is six counts, and a test fails when a file's score moves.
-- Learn from a vendor's score, then check what it sees. CodeScene gave 10.0 to files whose worst functions it never
-  parsed. It skipped each function that takes a func parameter, and each method on a type with two type parameters.
+- Keep a score of your own, built from your rules. `go tool health` is this guide's. It counts a function's
+  complexity, length, conditions and parameters, a body that repeats another's, and a pass-through.
+- Learn from a vendor's score, then check what it sees. One scored files clean whose worst functions it never
+  parsed: each function that takes a func parameter, and each method on a type with two type parameters.
 - Probe a scoring tool with a function you know is bad.
 - Where a score and a rule disagree, write the rule's reason beside it, and follow the rule.
 - A named boolean or a `case` list can clear a finding and leave the logic as complex. That games the score.
 - Undo a step that raises the score but reads worse.
-- Expect a score to cost lines in code that repeats little. odh's runtime code grew 4% to reach 10.0.
-- When a finding sits in a signature that an interface fixes, redesign the API, not the file. odh's `Append` now takes
-  one `Write`.
+- Expect a score to cost lines in code that repeats little.
+- When a finding sits in a signature that an interface fixes, redesign the API, not the file.
 - A clean score never ends a review. No tool counts hops, or the rules the compiler does not check.
 
 ## Errors across a boundary
@@ -127,13 +125,11 @@ A reader holds one function at a time. Count what they must hold, and let a tool
 
 - A package doc shows before it explains. Open with a short code sample or a `text` diagram, then add only the rules the
   sample cannot show. Go's `context` package is the model.
-- Give each package that others use a runnable Example, which `go test` checks against its Output. One whole-module
-  Example teaches the pattern faster than prose.
+- Give each package that others use a runnable Example, which `go test` checks against its Output. One Example
+  of the whole module teaches its pattern faster than prose.
 - Put each fact a user could learn only from the source in the package doc: a limit, a timeout, a retry interval, a
-  name-length cap. In odh's quiz, a fresh agent scored 16 of 24 on such facts before they were documented, and 24 of 24
-  after.
-- Keep rules about how packages compose in a practices doc, not in any one package doc. Without it, agents missed
-  only those.
+  name-length cap.
+- Keep rules about how packages compose in the project's `docs/practices.md`, not in any one package doc.
 - Prose that repeats an example gets cut.
 - State each fact in one place. Cut a sentence that another doc states, or that a check enforces with the fix.
 - A doc that states a number goes stale when the number moves. Change both in one commit.
@@ -145,7 +141,7 @@ Decide by what to fix when the code disagrees with it.
 | The sentence says                          | It goes in                | When code disagrees  |
 |--------------------------------------------|---------------------------|----------------------|
 | what the code is                           | README or the package doc | fix the doc          |
-| a rule a reviewer would reject a commit on | the practices doc         | fix the code         |
+| a rule a reviewer would reject a commit on | `docs/practices.md`       | fix the code         |
 | why one package has its rule               | that package's doc        | fix the doc          |
 | a reason no package owns, or a plan        | a decisions log           | revisit the decision |
 | something true only because an AI works    | `CLAUDE.md`               | fix the instruction  |
@@ -156,7 +152,7 @@ Change the README in the same commit as the code it describes. A stale doc is a 
 
 - A doc comment starts with the name it documents and says what the thing is for.
 - Elsewhere, a comment marks a trap, or says why a line that looks wrong is right.
-- Say only what the code and its names cannot. Fewer comments go stale less.
+- Say only what the code and its names cannot.
 - Write plain, complete sentences, each with one idea and at most 20 words. Enforce the limit with a tool.
 - Reword an idea that needs more than 20 words, rather than splitting it in two.
 - Put every noun on the page. No pronoun or possessive stands for a thing its sentence does not name.
@@ -169,13 +165,11 @@ Change the README in the same commit as the code it describes. A stale doc is a 
 - Test the domain rules and the ways the code is wired. Those two are enough.
 - Write the rules as one table that reads as the spec: name, given state, command, then the result or error.
 - Run each row through the real machinery, not a mock of it, so the test exercises the public API as callers use it.
-- Run each wiring once for each transport, such as in process, over HTTP and sharded, all in parallel.
+- Run each wiring once for each transport, such as in process and over HTTP, all in parallel.
 - Give each late or repeated reply its own row.
-- Fix a bug by first writing its test, and show it failing on the old code. A failing test ends a debate that prose
-  cannot.
+- Fix a bug by first writing its test, and show it failing on the old code.
 - Do not repeat a rule's test at a higher layer.
 - Prove a refactor by planting a bug in each moved piece. A plant that passes every test names an untested rule.
-  odh's sweep found untested rules in four modules and four framework packages this way.
 - Where no test reaches, run the old and the new build on the same inputs, and diff their output.
 - A shorter test is no gain if it checks less. Count its calls and its checks before and after.
 
@@ -199,7 +193,7 @@ Score both designs on five weighted measures:
   otherwise 1. For size, under 1% is 0, and 5% or more is 2.
 - The winner of a measure scores its weight times its margin. The higher total wins. A tie goes to the first measure
   that differs.
-- Size weighs least. In odh, size alone once picked a design that spread one lock rule over three groups of fields.
+- Size weighs least. Alone, it can pick a design that spreads one rule over several places.
 - Report a difference in behavior beside the score, not in it. The requirements settle it.
 - Keep the table with the verdict. When the kept design proves wrong, the table shows which weight misled.
 
@@ -208,7 +202,8 @@ Score both designs on five weighted measures:
 - For a change that shapes a framework, have two agents design apart from the same brief. Leave your favored design
   out of the brief. Each builds in its own worktree until every test passes.
 - Where the two converge, keep that. Where they split, a fresh judge scores both without your lean.
-- Record the rejected design, and the fact that decided, under Alternatives Considered or in the commit message.
+- Record the rejected design, and the fact that decided, under the design's Alternatives Considered or in the
+  commit message.
 - When your lean matches the human's, have a blind agent weigh the options first. Give it the facts, not whose option
   is whose. Hiding whose idea it is reduces sycophancy, while instructions alone do not.
 - After a change, run a fresh audit agent that reads whole packages and reports where code breaks a promise. Bring
@@ -217,25 +212,17 @@ Score both designs on five weighted measures:
 - Before approving a design, run two readers once each. One asks whether each piece is needed now, or already exists.
   The other paraphrases the design as a newcomer and reports where they could not follow it.
 - Never contest a comprehension gap. If a fresh reader could not follow the design, the design lacks context.
-- Draft the document before the first discussion point. Its open questions, ranked with a lean, form the agenda. A
-  cut of scope is a question too.
-- Tell an agent to run `go doc -all` on a package before using it. Its doc is the contract, and its Example shows the
-  use.
+- Draft a design before its first discussion point. Its open questions, ranked with a lean, form the agenda. A cut
+  of scope is a question too.
+- Tell an agent to run `go doc -all` on a package before using it.
 
 ## Mechanical checks
 
-Let tools hold every rule that needs no judgment, so a review spends its attention on judgment.
+Let tools hold every rule that needs no judgment.
 
-- `gofmt`, plus a style tool for blank lines after blocks, a 120-column limit and the 20-word sentence limit.
+- `gofmt`, plus `go tool style` for blank lines after blocks, a 120-column limit and the 20-word sentence limit.
 - Arch tests for import rules and for where state may change.
 - A test that fails while `go fix` would change the code.
-- A score for each file from the counts in Inside a function, and a test that fails when a file's score moves.
-- A test that each code span in the Markdown docs names a real declaration, so the docs cannot drift from the code.
-- The IDE's full inspection run from the command line, since partial linters report only part of it.
-
-## Sources
-
-Ousterhout, *A Philosophy of Software Design* and CS 190. Bloch, "How to Design a Good API". Google's Go Style Guide,
-Best Practices. Effective Go. Abseil Tip #94. Cheney, *Practical Go*. Taylor, "When To Use Generics". Cox, "Go 1.4
-Internal Packages". Ottinger's naming rules. Sharma et al. 2023 and ELEPHANT 2025 on sycophancy. Campbell, "Cognitive
-Complexity" (SonarSource). CodeScene's Code Health.
+- A score for each file from `go tool health`, and a test that fails when a file's score moves.
+- A test that each code span in the Markdown docs names a real declaration.
+- The IDE's full inspection, run from the command line.
