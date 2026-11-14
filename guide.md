@@ -145,6 +145,7 @@ Decide by what to fix when the code disagrees with it.
 | why one package has its rule               | that package's doc        | fix the doc          |
 | a reason no package owns, or a plan        | a decisions log           | revisit the decision |
 | something true only because an AI works    | `CLAUDE.md`               | fix the instruction  |
+| work still open, or a fact no file holds   | the handoff note          | drop the line        |
 
 Change the README in the same commit as the code it describes. A stale doc is a bug.
 
@@ -215,6 +216,10 @@ Score both designs on five weighted measures:
 - Draft a design before its first discussion point. Its open questions, ranked with a lean, form the agenda. A cut
   of scope is a question too.
 - Tell an agent to run `go doc -all` on a package before using it.
+- Keep one handoff note for the next session. It holds only what is open, and the facts no file holds. Git holds
+  what was done.
+- Log each reply that confused or slowed the human, with its cause and the correction. Review the log before you
+  change an instruction file.
 
 ## Mechanical checks
 
