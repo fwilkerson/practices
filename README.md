@@ -6,6 +6,8 @@ tool can count, and the checks their tests share. It began as odh's own, copied 
 - [`guide.md`](guide.md): Writing and Judging a Go API. [`cmd/guide`](cmd/guide) prints it. Each project's own
   `docs/practices.md` adds its own rules.
 - [`claim`](claim): the checks a project's tests share. `go doc -all ./claim` is its contract.
+- [`repotest`](repotest): the tests that hold a whole repository to the guide's "Mechanical checks". A project's
+  root test calls each in a line. `go doc -all ./repotest` is its contract.
 - [`cmd/style`](cmd/style): the rules gofmt leaves out, such as a blank line after a block and a comment's 20 words.
 - [`cmd/health`](cmd/health): a score for each Go file, from six rules a tool can count.
 - [`cmd/size`](cmd/size): the lines of code, test and comment under a directory.
@@ -34,6 +36,19 @@ tool (
 Then `go tool guide` prints the guide, `go tool style -l .`, `go tool health .`, `go tool size .` and
 `go tool inspect` run each command, and a test imports `github.com/fwilkerson/practices/claim`.
 
+The project's root test holds it to the rules, in a file such as `style_test.go`:
+
+```go
+func TestStyle(t *testing.T)  { repotest.Style(t) }
+func TestModern(t *testing.T) { repotest.Modern(t) }
+func TestGuide(t *testing.T)  { repotest.Guide(t, "docs/guide.md") }
+func TestNames(t *testing.T)  { repotest.Names(t, "README.md", "docs/practices.md") }
+func TestHealth(t *testing.T) { repotest.Health(t, held) }
+
+// held is the score of each file under 10. Each stays until its failures are fixed.
+var held = map[string]string{}
+```
+
 ## Load the guide in each session
 
 An agent follows best what is in its context before its first turn, and `CLAUDE.md` is what puts it there. So a
@@ -41,8 +56,8 @@ project keeps a copy of the guide, and a test holds the copy to the module:
 
 1. Run `go tool guide > docs/guide.md`, and commit the file.
 2. Put `@docs/guide.md` on a line of its own in the project's `CLAUDE.md`.
-3. Add a test that fails while `docs/guide.md` differs from what `go tool guide` prints, and that names the command
-   in step 1 as the fix.
+3. Add the test `repotest.Guide(t, "docs/guide.md")`. It fails while the file differs from the guide, and names
+   the command in step 1 as the fix.
 
 After each upgrade of this module, run step 1 again. The test fails until you do.
 

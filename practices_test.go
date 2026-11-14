@@ -2,17 +2,13 @@
 package practices_test
 
 import (
-	"os/exec"
-	"strings"
 	"testing"
+
+	"github.com/fwilkerson/practices/repotest"
 )
 
-// TestRules fails while style or health finds a problem in this repository. The failure shows what the command found.
-func TestRules(t *testing.T) {
-	for _, command := range []string{"go tool style -l .", "go tool health ."} {
-		args := strings.Fields(command)
-		if out, err := exec.Command(args[0], args[1:]...).CombinedOutput(); err != nil {
-			t.Errorf("%s: %v\n%s", command, err, out)
-		}
-	}
-}
+func TestStyle(t *testing.T)  { repotest.Style(t) }
+func TestModern(t *testing.T) { repotest.Modern(t) }
+func TestGuide(t *testing.T)  { repotest.Guide(t, "guide.md") }
+func TestNames(t *testing.T)  { repotest.Names(t, "README.md") }
+func TestHealth(t *testing.T) { repotest.Health(t, nil) }
