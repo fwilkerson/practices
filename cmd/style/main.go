@@ -6,10 +6,9 @@
 //   - A line is at most 120 columns wide, a tab counting as 4. A row of a table may be wider.
 //   - A sentence in a comment has at most 20 words. A list item, an indented line or an example's output may be
 //     longer.
-//   - A module's port, service and model files keep their declarations in the layout that layout.go sets.
 //
-// It fixes formatting, blank lines and the layout in place, and reports wide lines and long sentences. With -l it
-// changes nothing, lists what is wrong, and exits 1 if anything is:
+// It fixes formatting and blank lines in place, and reports wide lines and long sentences. With -l it changes
+// nothing, lists what is wrong, and exits 1 if anything is:
 //
 //	go tool style .
 //	go tool style -l .
@@ -129,24 +128,10 @@ const (
 	notGofmt   = "the file is not formatted as gofmt formats it"
 )
 
-// style returns src with its layout, blank lines and formatting fixed, and the problems it found. Each problem's line
-// is in src.
+// style returns src with its blank lines and formatting fixed, and the problems it found. Each problem's line is in
+// src.
 func style(path string, src []byte) ([]byte, []problem, error) {
-	sorted, wrong, err := layout(path, src)
-	if err != nil {
-		return nil, nil, err
-	}
-
 	out, problems, err := spacing(path, src)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	if wrong != nil {
-		out, _, err = spacing(path, sorted)
-		problems = append(problems, wrong...)
-	}
-
 	if err != nil {
 		return nil, nil, err
 	}
