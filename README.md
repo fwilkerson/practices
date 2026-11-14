@@ -9,6 +9,8 @@ tool can count, and the checks their tests share. It began as odh's own, copied 
 - [`cmd/style`](cmd/style): the rules gofmt leaves out, such as a blank line after a block and a comment's 20 words.
 - [`cmd/health`](cmd/health): a score for each Go file, from six rules a tool can count.
 - [`cmd/size`](cmd/size): the lines of code, test and comment under a directory.
+- [`cmd/inspect`](cmd/inspect): GoLand's inspections over a project, one line for each finding. It needs GoLand
+  installed, and the project's `.idea`, which holds the inspection profile.
 
 ## Use it from a project
 
@@ -23,13 +25,14 @@ replace github.com/fwilkerson/practices => /Users/dev/github.com/fwilkerson/prac
 tool (
 	github.com/fwilkerson/practices/cmd/guide
 	github.com/fwilkerson/practices/cmd/health
+	github.com/fwilkerson/practices/cmd/inspect
 	github.com/fwilkerson/practices/cmd/size
 	github.com/fwilkerson/practices/cmd/style
 )
 ```
 
-Then `go tool guide` prints the guide, `go tool style -l .`, `go tool health .` and `go tool size .` run each
-command, and a test imports `github.com/fwilkerson/practices/claim`.
+Then `go tool guide` prints the guide, `go tool style -l .`, `go tool health .`, `go tool size .` and
+`go tool inspect` run each command, and a test imports `github.com/fwilkerson/practices/claim`.
 
 ## Load the guide in each session
 
