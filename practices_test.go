@@ -11,4 +11,5 @@ func TestStyle(t *testing.T)  { repotest.Style(t) }
 func TestModern(t *testing.T) { repotest.Modern(t) }
 func TestGuide(t *testing.T)  { repotest.Guide(t, "guide.md") }
 func TestNames(t *testing.T)  { repotest.Names(t, "README.md") }
+func TestLinks(t *testing.T)  { repotest.Links(t, "README.md") }
 func TestHealth(t *testing.T) { repotest.Health(t, nil) }

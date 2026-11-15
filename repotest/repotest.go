@@ -5,7 +5,11 @@
 //	func TestModern(t *testing.T) { repotest.Modern(t) }
 //	func TestGuide(t *testing.T)  { repotest.Guide(t, "docs/guide.md") }
 //	func TestNames(t *testing.T)  { repotest.Names(t, "README.md", "docs/practices.md", ".claude/agents/*.md") }
+//	func TestLinks(t *testing.T)  { repotest.Links(t, "README.md", "docs/practices.md", ".claude/agents/*.md") }
 //	func TestHealth(t *testing.T) { repotest.Health(t, held) }
+//
+//	// TestContext holds the words that every session loads.
+//	func TestContext(t *testing.T) { repotest.Context(t, map[string]int{"CLAUDE.md": 300}) }
 //
 //	// held is the score of each file under 10. Each stays until its failures are fixed.
 //	var held = map[string]string{"internal/feed/feed.go": "9"}
