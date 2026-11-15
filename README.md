@@ -49,21 +49,25 @@ func TestHealth(t *testing.T) { repotest.Health(t, held) }
 var held = map[string]string{}
 ```
 
-## Load the guide in each session
+## Keep a copy of the guide in each project
 
-An agent follows best what is in its context before its first turn, and `CLAUDE.md` is what puts it there. So a
-project keeps a copy of the guide, and a test holds the copy to the module:
+The agents that judge a project's code, such as an audit, read the guide by its path. So a project keeps a copy of
+the guide, and a test holds the copy to the module:
 
 1. Run `go tool guide > docs/guide.md`, and commit the file.
-2. Put `@docs/guide.md` on a line of its own in the project's `CLAUDE.md`.
+2. Name `docs/guide.md` in the prompt of each agent that judges by it.
 3. Add the test `repotest.Guide(t, "docs/guide.md")`. It fails while the file differs from the guide, and names
    the command in step 1 as the fix.
 
 After each upgrade of this module, run step 1 again. The test fails until you do.
 
-Three other ways were tried on 2026-11-14, in a session with no terminal. A `CLAUDE.md` import of a path outside
-the project did not load. A hook at the session's start cut the guide at about 10,000 characters. An instruction
-to run `go tool guide` loads nothing until the agent chooses to run it.
+A project may also load the copy into every session, with `@docs/guide.md` on a line of its own in its `CLAUDE.md`.
+Each session and each subagent then carries the whole guide. odh stopped doing so on 2026-11-15, since its audit
+holds each build to the guide.
+
+Three other ways to load the guide into every session were tried on 2026-11-14, in a session with no terminal. A
+`CLAUDE.md` import of a path outside the project did not load. A hook at the session's start cut the guide at about
+10,000 characters. An instruction to run `go tool guide` loads nothing until the agent chooses to run it.
 
 A change here reaches each project at its next build, uncommitted edits included. Run `go test ./...` here before
 you leave a change in place.

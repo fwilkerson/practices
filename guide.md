@@ -83,17 +83,15 @@ last, a sentence in a doc.
 
 ## Inside a function
 
-A reader holds one function at a time. Count what they must hold, and let a tool keep the count.
+A reader holds one function at a time. `go tool health` counts what they must hold, and its report states each
+limit.
 
-- Count cognitive complexity, not paths (Campbell). Each break in the flow costs 1, plus 1 for each level it is
-  nested. Keep a function at 15 or under.
-- A switch with one case for each event or rule is one place to read. Count it as 1 plus its costliest case, never
-  as their sum.
+- A switch with one case for each event or rule is one place to read.
 - Write a command's refusals as one list of guard cases. Each case is one rule, with its own message.
 - Give a value's validity a name, such as `deliverable(a)`. The guard stays in its place, and reads as its rule.
 - State a rule once. When a named predicate already holds it, call that predicate rather than restating it negated.
-- Keep a condition to one `&&` or `||`. Name the rest only when the name says what the code does not.
-- Keep a function to 80 lines of code and 4 parameters. Past 4, name the roles, as the call site section says.
+- Name a part of a condition only when the name says what the code does not.
+- When a function takes too many parameters, name the roles, as the call site section says.
 - Extract a helper when its name pays for the hop, never to move a count.
 - Read each new name at its call sites, as someone who has not opened the helper. A name fails there when it has no
   subject, asks two questions, hides a step, or reads as a call it does not make.
@@ -143,9 +141,9 @@ Decide by what to fix when the code disagrees with it.
 | what the code is                           | README or the package doc | fix the doc          |
 | a rule a reviewer would reject a commit on | `docs/practices.md`       | fix the code         |
 | why one package has its rule               | that package's doc        | fix the doc          |
-| a reason no package owns, or a plan        | a decisions log           | revisit the decision |
+| a reason no package owns                   | a decisions log           | revisit the decision |
 | something true only because an AI works    | `CLAUDE.md`               | fix the instruction  |
-| work still open, or a fact no file holds   | the handoff note          | drop the line        |
+| work still open, or a plan                 | a spec not yet approved   | revise the spec      |
 
 Change the README in the same commit as the code it describes. A stale doc is a bug.
 
@@ -216,18 +214,12 @@ Score both designs on five weighted measures:
 - Draft a design before its first question. Rank its open questions, and ask the human one at a time, each with its
   options and a lean. A cut of scope is a question too.
 - Tell an agent to run `go doc -all` on a package before using it.
-- Keep one handoff note for the next session. It holds only what is open, and the facts no file holds. Git holds
-  what was done.
-- Log each reply that confused or slowed the human, with its cause and the correction. Review the log before you
-  change an instruction file.
 
 ## Mechanical checks
 
 Let tools hold every rule that needs no judgment.
 
-- `gofmt`, plus `go tool style` for blank lines after blocks, a 120-column limit and the 20-word sentence limit.
-- Arch tests for import rules and for where state may change.
-- A test that fails while `go fix` would change the code.
-- A score for each file from `go tool health`, and a test that fails when a file's score moves.
-- A test that each code span in the Markdown docs names a real declaration.
-- The IDE's full inspection, run from the command line.
+- A rule that a lint or an invariant test can hold becomes that check. Delete the rule's sentence in the check's
+  commit.
+- A check's failure message names the fix, so no doc repeats it.
+- The practices module's `repotest` holds the checks that every project shares. A project's root tests hold its own.

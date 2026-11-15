@@ -25,28 +25,27 @@ import (
 	"github.com/fwilkerson/practices/claim"
 )
 
-// Style fails t while go tool style -l finds a problem in the repository. Running go tool style fixes the formatting
-// and the blank lines in place. It only reports a wide line or a long comment sentence, so fix those by hand.
+// Style fails t while go tool style -l finds a problem in the repository. Its message names the fix.
 func Style(t testing.TB) {
 	t.Helper()
 	if out, err := exec.Command("go", "tool", "style", "-l", ".").CombinedOutput(); err != nil {
-		t.Errorf("go tool style -l .: %v\n%s", err, out)
+		t.Errorf("go tool style -l .: %v\n%s\nRun go tool style . to fix the formatting and the blank lines. "+
+			"Fix a wide line or a long sentence by hand.", err, out)
 	}
 }
 
-// Modern fails t while go fix would change the code, such as to use min or range over an int. Running go fix ./...
-// applies its changes.
+// Modern fails t while go fix would change the code, such as to use min or range over an int. Its message names the
+// fix.
 func Modern(t testing.TB) {
 	t.Helper()
 	out, err := exec.Command("go", "fix", "-diff", "./...").CombinedOutput()
 	if err != nil || len(out) > 0 {
-		t.Errorf("go fix -diff ./...: %v\n%s", err, out)
+		t.Errorf("go fix -diff ./...: %v\n%s\nRun go fix ./... to apply the changes.", err, out)
 	}
 }
 
 // Guide fails t while the file at path differs from the guide of the practices module that go.mod names. A project's
-// CLAUDE.md loads that file, so each session reads the guide at that version. Running go tool guide > path brings the
-// file up to date.
+// agents read that file, so each judges by the guide at that version. Its message names the fix.
 func Guide(t testing.TB, path string) {
 	t.Helper()
 	got, err := os.ReadFile(path)
@@ -56,8 +55,7 @@ func Guide(t testing.TB, path string) {
 }
 
 // Health fails t when a file's score from go tool health differs from its score in held. held maps each file that
-// scores under 10 to its score, so a file that held omits must score 10. A failure means the code changed: fix the
-// code, and never raise a held score by hand.
+// scores under 10 to its score, so a file that held omits must score 10. Its message names the fix.
 func Health(t testing.TB, held map[string]string) {
 	t.Helper()
 	out, err := exec.Command("go", "tool", "health", ".").CombinedOutput()
@@ -73,7 +71,8 @@ func Health(t testing.TB, held map[string]string) {
 	}
 
 	if diff := claim.Diff(held, got); diff != "" {
-		t.Errorf("go tool health's scores differ (-held +got):\n%s\n%s", diff, out)
+		t.Errorf("go tool health's scores differ (-held +got):\n%s\n%s\nThe code changed, so fix the code, or bring "+
+			"the rule to the repository's owner. Never raise a held score by hand.", diff, out)
 	}
 }
 
