@@ -213,8 +213,8 @@ Score both designs on five weighted measures:
 - Before approving a design, run two readers once each. One asks whether each piece is needed now, or already exists.
   The other paraphrases the design as a newcomer and reports where they could not follow it.
 - Never contest a comprehension gap. If a fresh reader could not follow the design, the design lacks context.
-- Draft a design before its first discussion point. Its open questions, ranked with a lean, form the agenda. A cut
-  of scope is a question too.
+- Draft a design before its first question. Rank its open questions, and ask the human one at a time, each with its
+  options and a lean. A cut of scope is a question too.
 - Tell an agent to run `go doc -all` on a package before using it.
 - Keep one handoff note for the next session. It holds only what is open, and the facts no file holds. Git holds
   what was done.
