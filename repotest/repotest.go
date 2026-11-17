@@ -59,7 +59,8 @@ func Guide(t testing.TB, path string) {
 }
 
 // Health fails t when a file's score from go tool health differs from its score in held. held maps each file that
-// scores under 10 to its score, so a file that held omits must score 10. Its message names the fix.
+// scores under 10 to its score, so a file that held omits must score 10. A key is the path that go tool health
+// prints, such as "order/order.go". Its message names the fix.
 func Health(t testing.TB, held map[string]string) {
 	t.Helper()
 	out, err := exec.Command("go", "tool", "health", ".").CombinedOutput()

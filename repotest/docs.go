@@ -26,8 +26,9 @@ func Links(t testing.TB, docs ...string) {
 	}
 }
 
-// Context fails t while a file that every session loads grows past its limit, or imports another file. limits maps
-// each such file, such as CLAUDE.md, to the most words it may hold.
+// Context fails t while a file that every Claude Code session loads grows past its limit, or imports another file.
+// limits maps each such file, such as CLAUDE.md, to the most words it may hold. Its code blocks count as words too.
+// An import is a word that starts with @, outside a code span or a fenced code block.
 func Context(t testing.TB, limits map[string]int) {
 	t.Helper()
 	problems, err := heavyContext(".", limits)
