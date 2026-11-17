@@ -53,8 +53,11 @@ func Modern(t testing.TB) {
 func Guide(t testing.TB, path string) {
 	t.Helper()
 	got, err := os.ReadFile(path)
-	if err != nil || string(got) != practices.Guide {
-		t.Errorf("%s differs from the guide, %v: run go tool guide > %s", path, err, path)
+	switch {
+	case err != nil:
+		t.Errorf("%v: run go tool guide > %s", err, path)
+	case string(got) != practices.Guide:
+		t.Errorf("%s differs from the guide: run go tool guide > %s", path, path)
 	}
 }
 
