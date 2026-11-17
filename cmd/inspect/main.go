@@ -1,11 +1,21 @@
 // Command inspect runs GoLand's inspections over a project, as Code › Inspect Code does. It prints one line for each
-// finding. It exits 1 when there is a finding:
+// finding, with the file's absolute path and the inspection's ID. It exits 1 when there is a finding:
 //
-//	go tool inspect
+//	$ go tool inspect
+//	.../shop/order/order.go:11: Unused function <code>Total</code> (GoUnusedExportedFunction)
+//	.../shop/order/order.go:11: Unused parameter <code>staff</code> (GoUnusedParameter)
 //
-// It inspects the directory it is given, or the working directory, by the profile in that project's .idea. It needs
-// GoLand installed, and -app names an install outside /Applications. It runs alongside an open GoLand, on a copy of
-// GoLand's settings, so it leaves the IDE's settings alone.
+// It runs on macOS alone, and needs a licensed GoLand. It runs GoLand's inspect.sh from /Applications/GoLand.app,
+// or from the install that -app names:
+//
+//	go tool inspect -app ~/Applications/GoLand.app
+//
+// It inspects the directory it is given, or the working directory, by the profile in that project's .idea. A project
+// without a .idea gets GoLand's default profile, and GoLand writes a .idea/workspace.xml into the project.
+//
+// It runs alongside an open GoLand, on a copy of GoLand's settings, so it leaves the IDE's settings alone. It copies
+// the options and the license file goland.key from the last GoLand directory, by name, under
+// ~/Library/Application Support/JetBrains.
 package main
 
 import (
