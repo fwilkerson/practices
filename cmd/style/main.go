@@ -1,4 +1,17 @@
-// Command style enforces the rules that gofmt leaves out, so no reviewer has to judge them:
+// Command style enforces the rules that gofmt leaves out, so no reviewer has to judge them. With -l it changes
+// nothing, lists what is wrong, and exits 1 if anything is:
+//
+//	$ go tool style -l .
+//	order/order.go:10: a sentence in this comment has more than 20 words
+//	order/order.go:16: a blank line follows a closing brace
+//
+// Without -l it fixes formatting and blank lines in place. It lists only the wide lines and long sentences left,
+// and exits 1 if it lists one:
+//
+//	$ go tool style .
+//	order/order.go:10: a sentence in this comment has more than 20 words
+//
+// The rules:
 //
 //   - A file is formatted as gofmt formats it.
 //   - An if that checks what the statement above it assigned sits directly under it.
@@ -7,11 +20,13 @@
 //   - A sentence in a comment has at most 20 words. A list item, an indented line or an example's output may be
 //     longer.
 //
-// It fixes formatting and blank lines in place, and reports wide lines and long sentences. With -l it changes
-// nothing, lists what is wrong, and exits 1 if anything is:
+// An if with no init checks the statement above it when its condition uses a name that statement assigns.
+// A table is a composite literal over several lines, and each element starts a row. A sentence ends at a word that
+// ends in a period, a question mark or an exclamation mark. A block comment and a directive such as //go:embed are not
+// read.
 //
-//	go tool style .
-//	go tool style -l .
+// It reads each directory it is given, or the working directory. It skips the directories that ./... skips:
+// testdata, vendor, and each name that starts with . or _.
 //
 // Where to break a long run of statements into steps is still the writer's call.
 package main
