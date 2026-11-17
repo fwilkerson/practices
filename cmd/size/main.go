@@ -1,14 +1,22 @@
-// Command size counts the lines of Go under each directory it is given. It prints a row for each subdirectory, a row
-// for the directory's own files, and a total. Run it again on a large row to see inside it:
+// Command size counts the lines of Go under each directory it is given, or the working directory:
 //
-//	go tool size modules internal cmd
-//	go tool size modules/order
+//	$ go tool size .
+//	        code   fake   test  bench  comment  test%  comment%
+//	docs       0      0      0      0        0      -         -
+//	order     15      0     13      0        3    86%       10%
+//	*.go       0      0     12      0        1      -        8%
+//	.         15      0     25      0        4   166%       10%
 //
-// It skips the directories that ./... skips, such as testdata. It classifies each line as cloc does. A line with any
-// code is code, and a line with only a comment is comment. Each line of code goes in one of four columns:
+// It prints a row for each subdirectory, a row for the directory's own files, and the directory's total. Given more
+// than one directory, it adds a row for the total of all. Run it again on a large row to see inside it, such as
+// go tool size order.
+//
+// It skips the directories that ./... skips: testdata, vendor, and each name that starts with . or _. It classifies
+// each line as cloc does. A line with any code is code, and a line with only a comment is comment. Each line of code
+// goes in one of four columns:
 //
 //   - bench counts the files whose name ends in _bench_test.go, which hold the benchmarks.
-//   - test counts the other _test.go files, and the files of a directory whose name ends in test, such as kittest.
+//   - test counts the other _test.go files, and the files of a directory whose name ends in test, such as repotest.
 //   - fake counts each fake.go, which stands in for an outside system when a program runs locally.
 //   - code counts the rest.
 //
