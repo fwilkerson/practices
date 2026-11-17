@@ -1,13 +1,13 @@
-// Package claim holds the checks that a project's tests share. Only tests and their helpers import it. A test of
-// odh's payment module uses it this way:
+// Package claim holds the checks that a project's tests share. Only tests and their helpers import it. A test of a
+// payment service uses it this way:
 //
 //	_, errAuthorize := payments.Authorize(ctx, authorize)
 //	_, errCapture := payments.Capture(ctx, capture)
 //	claim.Must(t, errAuthorize, errCapture)
 //
-//	p, err := payments.Get(ctx, payment.GetQuery{Ref: ref})
-//	if err != nil || !claim.Holds(p.Status == payment.StatusCaptured, p.Version == 4) {
-//		t.Errorf("Get = %+v, %v; want %s at version %d", p, err, payment.StatusCaptured, 4)
+//	p, err := payments.Get(ctx, ref)
+//	if err != nil || !claim.Holds(p.Status == "captured", p.Version == 4) {
+//		t.Errorf("Get = %+v, %v; want captured at version 4", p, err)
 //	}
 //
 //	if diff := claim.Diff(want, got); diff != "" {
