@@ -1,4 +1,11 @@
-// Command health scores each Go file by six rules that a tool can count:
+// Command health scores each Go file under a directory from 10 to 1, by six rules a tool can count:
+//
+//	$ go tool health .
+//	order/order.go:11: Total takes 5 parameters, over 4
+//	order/order.go:16: Total has a condition with 2 of && and ||
+//	 8  order/order.go
+//
+// It prints each failure, then the score of each file under 10. It exits 1 when a file scores under 10.
 //
 //	rule          a function fails it when
 //	complexity    its cognitive complexity is over 15
@@ -9,9 +16,11 @@
 //	pass-through  it only hands its parameters on to a function of its package, or a method of its receiver
 //
 // A file starts at 10 and loses a point for each failure, down to 1. A count of at least twice the least that fails
-// loses two. The command prints each failure, then the score of each file under 10, and exits 1 if there is one:
+// loses two, such as 10 parameters. A duplicate or a pass-through costs one point.
 //
-//	go tool health .
+// The command reads the directory it is given, or the working directory. It scores test files too. It skips the
+// directories that ./... skips: testdata, vendor, and each name that starts with . or _. A duplicate is reported at
+// the later body, with files read in the order of their paths. A line of code holds more than a comment.
 //
 // Cognitive complexity is SonarSource's measure: each break in the flow costs 1, plus 1 for each level it is nested.
 // A reader takes a switch one case at a time. So a switch costs 1 plus its costliest case, where SonarSource adds up
