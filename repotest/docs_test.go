@@ -17,7 +17,7 @@ func TestBrokenLinks(t *testing.T) {
 See [the guide](guide.md), [its rules](guide.md#rules), [the root](../README.md) and [the root again](/README.md).
 A [URL](https://go.dev/doc), [mail](mailto:dev@example.com) and [an anchor](#order) are no paths.
 `+"```text\n[a link in a code block](missing.md)\n```"+`
-But [the handoff](../.claude/handoff.md) names no file.
+But [the plan](../notes/plan.md) names no file.
 Neither does [a section](gone.md#rules).
 `)
 
@@ -25,7 +25,7 @@ Neither does [a section](gone.md#rules).
 	claim.Must(t, err)
 
 	want := []string{
-		"docs/order.md:8: the link to ../.claude/handoff.md names no file. Fix the path, or drop the link.",
+		"docs/order.md:8: the link to ../notes/plan.md names no file. Fix the path, or drop the link.",
 		"docs/order.md:9: the link to gone.md#rules names no file. Fix the path, or drop the link.",
 	}
 	if diff := claim.Diff(want, got); diff != "" {
@@ -43,8 +43,8 @@ func TestBrokenLinksNoDoc(t *testing.T) {
 // TestHeavyContext plants three instruction files. One is within its limit, one imports a file, and one is too long.
 func TestHeavyContext(t *testing.T) {
 	root := t.TempDir()
-	write(t, root, "ok.md", "# odh\n\nRun `@docs/guide.md` never loads, and dev@example.com is no import.\n")
-	write(t, root, "imports.md", "# odh\n\n@docs/guide.md\n\n"+"```text\n@a/code/block.md\n```\n")
+	write(t, root, "ok.md", "# Shop\n\nRun `@docs/guide.md` never loads, and dev@example.com is no import.\n")
+	write(t, root, "imports.md", "# Shop\n\n@docs/guide.md\n\n"+"```text\n@a/code/block.md\n```\n")
 	write(t, root, "long.md", "one two three four five six\n")
 
 	got, err := heavyContext(root, map[string]int{"ok.md": 20, "imports.md": 20, "long.md": 5})
