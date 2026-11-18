@@ -17,6 +17,15 @@
 // Each test reads the working directory, which go test sets to the test's own directory. So the test file sits at
 // the repository's root. [Style] and [Health] run this module's commands with go tool, so the project's go.mod
 // names both in its tool lines.
+//
+// [Facts] is the one check a package's own test calls. It holds each number the package doc states to the code:
+//
+//	func TestFacts(t *testing.T) {
+//		repotest.Facts(t, map[string]bool{
+//			"waits 10 s for a reply": wait == 10*time.Second,
+//			"keeps the last 64 KiB":  kept == 64<<10,
+//		})
+//	}
 package repotest
 
 import (

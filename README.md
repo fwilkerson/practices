@@ -130,6 +130,15 @@ $ go test .
 `repotest.Style` and `repotest.Health` run the commands, so they need the `tool` lines above. `repotest.Context` caps
 the words of a file that every Claude Code session loads, such as `CLAUDE.md`.
 
+`repotest.Facts` is the one check a package's own test calls. It holds each number the package doc states to the
+code, so a doc that says "waits 10 s" fails its test when the constant moves:
+
+```go
+func TestFacts(t *testing.T) {
+	repotest.Facts(t, map[string]bool{"waits 10 s for a reply": wait == 10*time.Second})
+}
+```
+
 The project keeps a copy of the guide, so its reviewers and agents read the rules by a path. Write it with
 `go tool guide > docs/guide.md`, and run that again after each upgrade of this module. `repotest.Guide` fails until
 you do.
